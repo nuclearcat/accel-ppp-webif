@@ -1,4 +1,40 @@
 <?php
+// Default secret for password test
+$secret='$6$rounds=10000$YO2pGg47XU$AUgMTnkoPxJdvugNa7L78mYEymYmAJKFckoV/D8e3aqiiodAgYDi/DEE/dL4DLBHMn2NelH5IuhQ/sFb4NEsi1';
+
+
+function rndstr()
+{
+    $characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    $randstring = '';
+    for ($i = 0; $i < 10; $i++) {
+        $randstring .= $characters[rand(0, strlen($characters)-1)];
+    }
+    return $randstring;
+}
+
+function semi_hash_equals ($str1, $str2) {
+    // Insecure?
+    $res = 0;
+    if (strlen($str1) != strlen($str2)) { die("hash length mismatch"); }
+    for ($i=0; $i<strlen($str1); $i++) {
+	$res = $str1[$i] - $str2[$i];
+    }
+    return($res);
+}
+
+// Detect CLI mode
+if (isset($argv)) {
+    if (!isset($argv[1])) {
+	echo("--password xxx     : encrypt password\n");
+	exit(0);
+    }
+    if ($argv[1] == "--password" && isset($argv[2])) {
+	echo "\$secret='".crypt(trim($argv[2]),'$6$rounds=10000$'.rndstr().'$')."';\n";
+	exit(0);
+    }
+    exit(0);
+}
 
 function getsysint($path) {
 	$data = "";
@@ -46,8 +82,8 @@ switch($_POST{'action'}) {
 		$arr = array();
 		$arr{'status'} = "Login or password not set";
 		if (isset($_POST{'login'}) && isset($_POST{'password'})) {
-			// Normal auth
-			if ($_POST{'login'} == "admin" && $_POST{'password'} == "admin") {
+			// We should use hash_equals
+			if ($_POST{'login'} == "admin" && !semi_hash_equals(crypt($_POST{'password'}, $secret), $secret)) {
 				$arr{'status'} = "OK";
 				$_SESSION{'authenticated'} = 1;
 				$_SESSION{'login'} = $_POST{'login'};

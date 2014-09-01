@@ -70,13 +70,15 @@ function requestData() {
                                                  // longer than 20
 	    if ( typeof requestData.txbytes != 'undefined' ) {
 		var stampdiff = point.stamp - requestData.stamp;
-		var txdiff = point.txbytes - requestData.txbytes;
-		var speedtx = txdiff * 1000 * 8 / stampdiff;
+		var speedtx = (point.txbytes - requestData.txbytes) * 1000 * 8 / stampdiff;
+		var speedrx = (point.rxbytes - requestData.rxbytes) * 1000 * 8 / stampdiff;
             	// add the point
             	chart.series[0].addPoint([point.stamp, speedtx], true, shift);
+		chart.series[1].addPoint([point.stamp, speedrx], true, shift);
 	    }
 	    requestData.stamp = point.stamp;
             requestData.txbytes = point.txbytes;
+	    requestData.rxbytes = point.rxbytes;
             
             // call it again after one second
             setTimeout(requestData, 1000);    
@@ -92,6 +94,7 @@ function showchart () {
 	$("#ifchart").dialog({ height: winH, width: winW, modal: true,
 		close: function( event, ui ) {
 			delete requestData.txbytes;
+			delete requestData.rxbytes;
 			chart.destroy();
 			chart = null;
 		}
@@ -123,6 +126,9 @@ function showchart () {
         },
         series: [{
             name: 'TX Speed',
+            data: []
+        }, {
+            name: 'RX Speed',
             data: []
         }]
     });
